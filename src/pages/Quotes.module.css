@@ -1,0 +1,44 @@
+.page {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.riskChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.chip {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  background: #fff;
+}
+
+.chipActive {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(31, 122, 224, 0.08);
+}
+
+.resultCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}

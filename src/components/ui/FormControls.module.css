@@ -1,0 +1,42 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.label {
+  font-size: var(--font-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.control {
+  border: 1px solid rgba(217, 225, 242, 0.9);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.75rem;
+  font-size: var(--font-sm);
+  background: #fff;
+  color: var(--color-text-primary);
+  transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+.control:focus {
+  outline: none;
+  border-color: rgba(31, 122, 224, 0.6);
+  box-shadow: 0 0 0 3px rgba(31, 122, 224, 0.15);
+}
+
+.errorState {
+  border-color: rgba(229, 57, 53, 0.6);
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+.message {
+  font-size: var(--font-xs);
+  color: var(--color-danger);
+}
+
+.hint {
+  font-size: var(--font-xs);
+  color: var(--color-text-muted);
+}
