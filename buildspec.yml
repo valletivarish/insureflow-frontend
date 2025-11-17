@@ -1,23 +1,41 @@
 version: 0.2
 
+env:
+  variables:
+    S3_BUCKET_NAME: "insureflow-app"
+    AWS_DEFAULT_REGION: "eu-west-1"
+    VITE_API_BASE_URL: "https://7yum264ntc.execute-api.eu-west-1.amazonaws.com/prod/api"
+
 phases:
   install:
     commands:
+      - echo "Installing NVM..."
+      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      - export NVM_DIR="$HOME/.nvm"
+      - . "$NVM_DIR/nvm.sh"
       - echo "Installing Node.js 18..."
-      - curl -sL https://rpm.nodesource.com/setup_18.x | bash -
-      - yum install -y nodejs
+      - nvm install 18
+      - nvm use 18
       - node -v
       - npm -v
-      - echo "Installing dependencies..."
+      - echo "Installing frontend dependencies..."
       - npm install
 
   build:
     commands:
-      - echo "Building Vite project..."
+      - echo "Building Vite React frontend..."
       - npm run build
+
+  post_build:
+    commands:
+      - echo "Cleaning existing S3 bucket contents..."
+      - aws s3 rm s3://$S3_BUCKET_NAME --recursive
+
+      - echo "Uploading new build files to S3..."
+      - aws s3 sync dist/ s3://$S3_BUCKET_NAME --acl public-read
+
+      - echo "Frontend deployment completed successfully!"
 
 artifacts:
   files:
     - '**/*'
-  base-directory: dist
-  discard-paths: yes
