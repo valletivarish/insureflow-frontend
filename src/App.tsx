@@ -30,12 +30,10 @@ const RequireAuth: React.FC<{ children: React.ReactElement; role?: "ADMIN" }> = 
   }
   if (role && user.role !== role) {
     // Redirect based on user role
-    if (user.role === "ADMIN") {
-      return <Navigate to="/admin" replace />;
-    }
-    if (user.userId) {
+    if (user.role === "USER" && user.userId) {
       return <Navigate to={`/user/${user.userId}`} replace />;
     }
+    // If user is not the required role, redirect to their appropriate dashboard
     return <Navigate to="/dashboard" replace />;
   }
   return children;
