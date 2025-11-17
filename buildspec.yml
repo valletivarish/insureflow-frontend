@@ -1,0 +1,37 @@
+version: 0.2
+
+env:
+  variables:
+    S3_BUCKET_NAME: "insureflow-app"
+    AWS_DEFAULT_REGION: "eu-west-1"
+    VITE_API_BASE_URL: "https://7yum264ntc.execute-api.eu-west-1.amazonaws.com/prod/api"
+
+phases:
+  install:
+    commands:
+      - echo "Installing Node.js 18 using NodeSource..."
+      - curl -sL https://rpm.nodesource.com/setup_18.x | bash -
+      - yum install -y nodejs
+      - node -v
+      - npm -v
+      - echo "Installing dependencies..."
+      - npm install
+
+  build:
+    commands:
+      - echo "Building Vite project..."
+      - npm run build
+
+  post_build:
+    commands:
+      - echo "Clearing existing files in S3 bucket..."
+      - aws s3 rm s3://$S3_BUCKET_NAME --recursive
+
+      - echo "Uploading new build to S3..."
+      - aws s3 sync dist/ s3://$S3_BUCKET_NAME --acl public-read
+
+      - echo "Deployment complete!"
+
+artifacts:
+  files:
+    - '**/*'
