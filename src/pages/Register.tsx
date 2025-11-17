@@ -35,17 +35,17 @@ export const RegisterPage = () => {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = handleSubmit(async (values) => {
-    setApiError(null);
-    try {
-      const { access_token } = await registerUser({
-        email: values.email,
-        password: values.password,
-        role: "USER", // All UI registrations are USER role
-      });
-      
-      // Automatically log in the user after registration
-      await login(values.email, values.password);
+          const onSubmit = handleSubmit(async (values) => {
+            setApiError(null);
+            try {
+              await registerUser({
+                email: values.email,
+                password: values.password,
+                role: "USER", // All UI registrations are USER role
+              });
+
+              // Automatically log in the user after registration
+              await login(values.email, values.password);
       showToast({ title: "Account created successfully", variant: "success" });
       navigate("/");
     } catch (err: any) {

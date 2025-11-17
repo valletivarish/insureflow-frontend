@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { InternalAxiosRequestConfig } from "axios";
 
 let authToken: string | null = null;
 
@@ -11,9 +12,8 @@ export const apiClient = axios.create({
   withCredentials: false,
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (authToken) {
-    config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${authToken}`;
   }
   return config;
