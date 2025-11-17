@@ -9,32 +9,28 @@ env:
 phases:
   install:
     commands:
-      - echo "Installing NVM..."
-      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-      - export NVM_DIR="$HOME/.nvm"
-      - . "$NVM_DIR/nvm.sh"
-      - echo "Installing Node.js 18..."
-      - nvm install 18
-      - nvm use 18
+      - echo "Installing Node.js 18 using NodeSource..."
+      - curl -sL https://rpm.nodesource.com/setup_18.x | bash -
+      - yum install -y nodejs
       - node -v
       - npm -v
-      - echo "Installing frontend dependencies..."
+      - echo "Installing dependencies..."
       - npm install
 
   build:
     commands:
-      - echo "Building Vite React frontend..."
+      - echo "Building Vite project..."
       - npm run build
 
   post_build:
     commands:
-      - echo "Cleaning existing S3 bucket contents..."
+      - echo "Clearing existing files in S3 bucket..."
       - aws s3 rm s3://$S3_BUCKET_NAME --recursive
 
-      - echo "Uploading new build files to S3..."
+      - echo "Uploading new build to S3..."
       - aws s3 sync dist/ s3://$S3_BUCKET_NAME --acl public-read
 
-      - echo "Frontend deployment completed successfully!"
+      - echo "Deployment complete!"
 
 artifacts:
   files:
