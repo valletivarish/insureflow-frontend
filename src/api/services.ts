@@ -72,12 +72,11 @@ export const adjudicateClaim = async (
 
 export const calculateQuote = async (payload: QuoteInput) => {
   // Lambda route is at /quote/calculate (without /api prefix)
-  // Get base URL without /api suffix
-  const lambdaBaseURL = (import.meta.env.VITE_API_BASE_URL || "https://7yum264ntc.execute-api.eu-west-1.amazonaws.com/prod/api")
-    .replace(/\/api$/, "");
+  // Use API Gateway base URL directly without /api
+  const apiGatewayBase = "https://7yum264ntc.execute-api.eu-west-1.amazonaws.com/prod";
   
   const { data } = await apiClient.post<QuoteResult>("/quote/calculate", payload, {
-    baseURL: lambdaBaseURL,
+    baseURL: apiGatewayBase,
   });
   return data;
 };
