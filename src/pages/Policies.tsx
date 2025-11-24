@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -13,7 +13,7 @@ import { Modal } from "../components/ui/Modal";
 import { Select } from "../components/ui/Select";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
-import { createPolicy, fetchPolicies, reinstatePolicy, renewPolicy, suspendPolicy } from "../api/services";
+import { calculateQuote, createPolicy, fetchPolicies, reinstatePolicy, renewPolicy, suspendPolicy } from "../api/services";
 import { formatCurrency } from "../utils/format";
 import type { Policy, PolicyStatus } from "../types";
 import styles from "./Policies.module.css";
@@ -23,6 +23,10 @@ const numericField = (label: string) =>
 
 const createPolicySchema = z.object({
   userId: z.string().min(3, "User ID required"),
+  age: numericField("Age")
+    .int("Age must be a whole number")
+    .min(18, "Age must be at least 18")
+    .max(100, "Age cannot exceed 100"),
   coverageAmount: numericField("Coverage amount")
     .min(1000, "Coverage amount must be at least €1,000"),
   premium: numericField("Premium")
@@ -76,6 +80,32 @@ export const PoliciesPage = () => {
       userId: user?.userId || "",
     },
   });
+
+  const quoteMutation = useMutation({
+    mutationFn: calculateQuote,
+    onSuccess: (data) => {
+      createForm.setValue("premium", data.premium);
+    },
+    onError: () => {
+      showToast({ title: "Failed to calculate premium", variant: "error" });
+    },
+  });
+
+  // Watch age, coverage amount and term to auto-calculate premium
+  const age = createForm.watch("age");
+  const coverageAmount = createForm.watch("coverageAmount");
+  const termMonths = createForm.watch("termMonths");
+
+  useEffect(() => {
+    if (age && age >= 18 && age <= 100 && coverageAmount && coverageAmount >= 1000 && termMonths && termMonths >= 12) {
+      // Calculate premium with entered age and no risk factors
+      quoteMutation.mutate({
+        age,
+        coverageAmount,
+        riskFactors: [],
+      });
+    }
+  }, [age, coverageAmount, termMonths]);
   const renewForm = useForm<RenewInput>({ resolver: zodResolver(renewSchema) });
   const suspendForm = useForm<SuspendInput>({ resolver: zodResolver(suspendSchema) });
 
@@ -232,6 +262,17 @@ export const PoliciesPage = () => {
               title={!isAdmin ? "You can only create policies for yourself" : ""}
             />
           </FormField>
+          <FormField label="Age" error={createForm.formState.errors.age?.message}>
+            <Input
+              type="number"
+              min="18"
+              max="100"
+              placeholder="Applicant age"
+              {...createForm.register("age", {
+                valueAsNumber: true,
+              })}
+            />
+          </FormField>
           <FormField label="Coverage (€)" error={createForm.formState.errors.coverageAmount?.message}>
             <Input
               type="number"
@@ -243,12 +284,17 @@ export const PoliciesPage = () => {
               })}
             />
           </FormField>
-          <FormField label="Premium (€)" error={createForm.formState.errors.premium?.message}>
+          <FormField 
+            label="Premium (€)" 
+            error={createForm.formState.errors.premium?.message}
+            hint="Premium is automatically calculated based on age, coverage amount, and term."
+          >
             <Input
               type="number"
               step="0.01"
               min="0.01"
-              placeholder="Premium amount"
+              placeholder="Calculated automatically"
+              disabled
               {...createForm.register("premium", {
                 valueAsNumber: true,
               })}
