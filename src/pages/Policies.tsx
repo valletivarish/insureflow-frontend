@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
@@ -95,16 +95,35 @@ export const PoliciesPage = () => {
   const age = createForm.watch("age");
   const coverageAmount = createForm.watch("coverageAmount");
   const termMonths = createForm.watch("termMonths");
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (age && age >= 18 && age <= 100 && coverageAmount && coverageAmount >= 1000 && termMonths && termMonths >= 12) {
-      // Calculate premium with entered age and no risk factors
-      quoteMutation.mutate({
-        age,
-        coverageAmount,
-        riskFactors: [],
-      });
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
     }
+
+    // Only calculate if all required fields are valid
+    if (age && age >= 18 && age <= 100 && coverageAmount && coverageAmount >= 1000 && termMonths && termMonths >= 12) {
+      // Debounce the API call to avoid unnecessary requests
+      debounceTimerRef.current = setTimeout(() => {
+        quoteMutation.mutate({
+          age,
+          coverageAmount,
+          riskFactors: [],
+        });
+      }, 500); // Wait 500ms after user stops typing
+    } else {
+      // Clear premium if fields are invalid
+      createForm.setValue("premium", 0);
+    }
+
+    // Cleanup timer on unmount or when dependencies change
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
   }, [age, coverageAmount, termMonths]);
   const renewForm = useForm<RenewInput>({ resolver: zodResolver(renewSchema) });
   const suspendForm = useForm<SuspendInput>({ resolver: zodResolver(suspendSchema) });
