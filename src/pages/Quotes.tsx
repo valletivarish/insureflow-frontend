@@ -20,8 +20,8 @@ const numberField = (label: string) =>
 
 const quoteSchema = z.object({
   age: numberField("Age").int().min(18).max(100),
-  coverageAmount: numberField("Coverage amount").positive(),
-  termMonths: numberField("Term").int().positive(),
+  coverageAmount: numberField("Coverage amount").min(1000, "Coverage amount must be at least €1,000"),
+  termMonths: numberField("Term").int().min(12, "Term must be at least 12 months").max(360),
 });
 
 type QuoteInputForm = z.infer<typeof quoteSchema>;
@@ -42,7 +42,7 @@ export const QuotesPage = () => {
 
   const form = useForm<QuoteInputForm>({
     resolver: zodResolver(quoteSchema),
-    defaultValues: { age: 30, coverageAmount: 50000, termMonths: 12 },
+    defaultValues: { age: 30, coverageAmount: 100000, termMonths: 12 },
   });
 
   const quoteMutation = useMutation({
@@ -92,12 +92,12 @@ export const QuotesPage = () => {
               <Input
                 type="number"
                 step="1000"
-                min="0.01"
+                min="1000"
                 {...form.register("coverageAmount", { valueAsNumber: true })}
               />
             </FormField>
             <FormField label="Term (months)" error={form.formState.errors.termMonths?.message}>
-              <Input type="number" min="1" {...form.register("termMonths", { valueAsNumber: true })} />
+              <Input type="number" min="12" max="360" {...form.register("termMonths", { valueAsNumber: true })} />
             </FormField>
             <FormField label="Risk factors">
               <div className={styles.riskChips}>

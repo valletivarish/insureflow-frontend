@@ -24,15 +24,14 @@ const numericField = (label: string) =>
 const createPolicySchema = z.object({
   userId: z.string().min(3, "User ID required"),
   coverageAmount: numericField("Coverage amount")
-    .positive("Coverage amount must be greater than 0")
-    .min(0.01, "Coverage amount must be greater than 0"),
+    .min(1000, "Coverage amount must be at least €1,000"),
   premium: numericField("Premium")
     .positive("Premium must be greater than 0")
     .min(0.01, "Premium must be greater than 0"),
   termMonths: numericField("Term")
     .int("Term must be a whole number")
-    .positive("Term must be greater than 0")
-    .min(1, "Term must be at least 1 month"),
+    .min(12, "Term must be at least 12 months")
+    .max(360, "Term cannot exceed 360 months (30 years)"),
   quoteId: z.string().optional(),
 });
 type CreatePolicyInput = z.infer<typeof createPolicySchema>;
@@ -233,36 +232,37 @@ export const PoliciesPage = () => {
               title={!isAdmin ? "You can only create policies for yourself" : ""}
             />
           </FormField>
-          <FormField label="Coverage" error={createForm.formState.errors.coverageAmount?.message}>
+          <FormField label="Coverage (€)" error={createForm.formState.errors.coverageAmount?.message}>
             <Input
               type="number"
               step="1000"
-              min="0.01"
+              min="1000"
+              placeholder="Minimum €1,000"
               {...createForm.register("coverageAmount", {
                 valueAsNumber: true,
-                validate: (value) => value > 0 || "Coverage amount must be greater than 0",
               })}
             />
           </FormField>
-          <FormField label="Premium" error={createForm.formState.errors.premium?.message}>
+          <FormField label="Premium (€)" error={createForm.formState.errors.premium?.message}>
             <Input
               type="number"
               step="0.01"
               min="0.01"
+              placeholder="Premium amount"
               {...createForm.register("premium", {
                 valueAsNumber: true,
-                validate: (value) => value > 0 || "Premium must be greater than 0",
               })}
             />
           </FormField>
           <FormField label="Term (months)" error={createForm.formState.errors.termMonths?.message}>
             <Input
               type="number"
-              min="1"
+              min="12"
+              max="360"
               step="1"
+              placeholder="Minimum 12 months"
               {...createForm.register("termMonths", {
                 valueAsNumber: true,
-                validate: (value) => (Number.isInteger(value) && value > 0) || "Term must be at least 1 month",
               })}
             />
           </FormField>
